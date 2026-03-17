@@ -416,3 +416,31 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# ── Ledger project-specific ────────────────────────────────────────────────────
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+src/Ledger.Api/data/
+
+# Uploaded CSVs (Bifrost imports)
+uploads/
+*.csv.upload
+
+# User data directories
+data/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Frontend
+client/node_modules/
+client/dist/
+client/.env
+client/.env.local
+
+# pnpm
+pnpm-debug.log*

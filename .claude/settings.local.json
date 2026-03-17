@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet new:*)",
+      "Read(//c/Program Files/dotnet//**)",
+      "Read(//c/Program Files/dotnet/x64//**)",
+      "Bash(reg query:*)"
+    ]
+  }
+}
