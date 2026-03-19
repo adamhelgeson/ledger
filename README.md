@@ -2,129 +2,147 @@
 
 > *Forged in the fires of Nidavellir. Powered by C#, React, and an unhealthy obsession with budgeting.*
 
-A local-first personal finance dashboard with a conversational AI agent (Heimdall). Dark mode by default. Viking / Marvel themed.
+A local-first personal finance dashboard with a conversational AI agent (Heimdall). Dark mode. Viking / Marvel themed. All data stays on your machine.
 
 ---
 
-## Features
+## Setup & First Run
 
-- **Net worth tracking** across checking, savings, credit card, brokerage, and retirement accounts
-- **Transaction history** — server-side pagination, search, date range filters, category filters
-- **CSV import** (The Bifrost) — auto-detects Chase and generic bank formats, deduplicates on re-import
-- **Auto-categorization** — pattern-matched on import; click any category in the transaction table to override it inline
-- **Spending charts** (The Ragnarök Report) — monthly breakdown by category
-- **Heimdall AI chat** — powered by Claude; queries your actual transaction data to answer finance questions
-- **Settings** (The Nine Realms) — add, edit, archive, or delete accounts
-
----
-
-## Quick Start (Development)
-
-### Prerequisites
+### 1. Install prerequisites
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download)
-- [Node.js 20+](https://nodejs.org/) and [pnpm](https://pnpm.io/)
+- [Node.js 20+](https://nodejs.org/) and [pnpm](https://pnpm.io/) (`npm install -g pnpm`)
 
-### Backend
+### 2. Add your Anthropic API key (for Heimdall AI chat)
+
+Get a key at [console.anthropic.com](https://console.anthropic.com). Then run this once from the `src/Ledger.Api/` directory:
+
+```bash
+cd src/Ledger.Api
+dotnet user-secrets set "Heimdall:ApiKey" "sk-ant-..."
+```
+
+This stores the key outside the repo in your OS secret store. Heimdall chat works without a key — it just returns an error message until one is set.
+
+### 3. Start the backend
 
 ```bash
 cd src/Ledger.Api
 dotnet watch run
-# API: http://localhost:5050
-# Swagger: http://localhost:5050/swagger
 ```
 
-The API auto-migrates the SQLite database and seeds demo data on first startup.
+On first run it creates the SQLite database at `src/Ledger.Api/data/ledger.db` and seeds it with demo accounts and transactions so you have something to explore immediately.
 
-### Frontend
+### 4. Start the frontend
+
+In a second terminal:
 
 ```bash
 cd client
 pnpm install
 pnpm dev
-# App: http://localhost:3000
 ```
 
-### Heimdall AI (optional)
-
-Set your Anthropic API key before starting the backend:
-
-```bash
-export ANTHROPIC_API_KEY="sk-ant-..."
-# or add to src/Ledger.Api/appsettings.json: "Heimdall": { "ApiKey": "sk-ant-..." }
-```
+Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## Home Media Server Deployment
+## Using the App
 
-Deploy Ledger as two Docker containers (API + nginx/SPA) with a persistent SQLite volume.
+### Dashboard
+
+The main view shows:
+
+- **The Vault of Asgard** — net worth, total assets, total liabilities, and monthly savings rate at the top
+- **The Nine Realms** — your account cards with current balances and sparkline charts
+- **The Ragnarök Report** — spending breakdown by category for the current month
+- **The Sacred Timeline** — full transaction history with search, filters, and pagination
+
+### Adding your accounts (The Nine Realms — Settings)
+
+1. Click **Settings** in the top nav (or the gear icon on mobile)
+2. Click **Add Realm**
+3. Fill in the account name, institution, type (Checking / Savings / Credit Card / Brokerage / 401k), and currency
+4. Click **Add Realm** to save
+
+To edit or archive an account, hover over it in the Settings list — action buttons appear on the right.
+
+### Importing bank statements (The Bifrost)
+
+Ledger imports CSV files exported from your bank. Most banks have a "Download transactions" or "Export" option in their web interface.
+
+**Supported formats:**
+| Bank | How to export |
+|---|---|
+| Chase | Accounts → Download Account Activity → CSV |
+| Any other bank | Export as CSV — Ledger auto-detects columns |
+
+**Import steps:**
+
+1. Download your CSV from your bank's website
+2. Click the **⚡ Bifrost** button in the top-right header
+3. Select the account you're importing into
+4. Drag and drop your CSV file onto the upload zone (or click to browse)
+5. Review the preview table — uncheck any rows you don't want to import
+6. Click **Confirm Import**
+
+Ledger automatically deduplicates — if you import the same file twice, or there's overlap between date ranges, existing transactions are skipped. It's safe to re-import.
+
+### Transaction categories
+
+Categories are assigned automatically on import based on the merchant name (Starbucks → Dining, Amazon → Shopping, etc.). You can override any category:
+
+1. In **The Sacred Timeline**, click the category badge on any transaction row
+2. Type the new category name
+3. Press **Enter** or click away to save
+
+Use the **Category** filter above the table to view all transactions in a specific category.
+
+### Heimdall AI chat
+
+Heimdall is an AI assistant that has direct access to your transaction data and can answer questions in plain English.
+
+1. Click the **Heimdall** button in the top-right header
+2. Ask anything about your finances, for example:
+   - *"How much did I spend on dining last month?"*
+   - *"What's my biggest spending category this year?"*
+   - *"Show me all transactions over $500"*
+   - *"What's my net worth?"*
+   - *"How is my savings rate this month compared to last?"*
+
+Heimdall remembers the conversation within the session — you can ask follow-up questions.
+
+---
+
+## Home Server Deployment (Docker)
+
+Run Ledger permanently on a home server or NAS.
 
 ### Prerequisites
 
 - Docker Engine 24+ with Compose V2 (`docker compose`)
-- A host with at least 512 MB RAM
 
-### 1. Clone and configure
-
-```bash
-git clone https://github.com/your-user/ledger.git
-cd ledger
-```
-
-### 2. Set your Anthropic API key (optional — for Heimdall chat)
-
-```bash
-export ANTHROPIC_API_KEY="sk-ant-..."
-```
-
-Or create a `.env` file in the project root:
+### 1. Create a `.env` file with your API key
 
 ```env
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-### 3. Build and start
+### 2. Build and start
 
 ```bash
 docker compose up -d --build
 ```
 
-This builds two images and starts:
+Open [http://your-server-ip:3000](http://your-server-ip:3000).
 
-| Container | Port | Description |
-|---|---|---|
-| `ledger-web` | `3000` | nginx serving the React SPA + proxying `/api/` to the backend |
-| `ledger-api` | (internal) | ASP.NET Core API on port 5050 |
-
-The SQLite database is persisted in the `ledger-data` Docker volume and survives container restarts/upgrades.
-
-### 4. Open in browser
-
-```
-http://your-server-ip:3000
-```
-
-### 5. Health check
-
-```bash
-curl http://your-server-ip:3000/health
-# → Healthy
-```
+The SQLite database lives in a Docker volume (`ledger-data`) and persists through upgrades.
 
 ### Upgrading
 
 ```bash
 git pull
 docker compose up -d --build
-```
-
-Data is preserved in the `ledger-data` volume.
-
-### Stopping
-
-```bash
-docker compose down
 ```
 
 ### Backup the database
@@ -134,41 +152,35 @@ docker run --rm -v ledger-data:/data -v $(pwd):/backup alpine \
   cp /data/ledger.db /backup/ledger-backup-$(date +%Y%m%d).db
 ```
 
-### Reverse proxy (optional)
+### Serve on port 80 / with a domain
 
-To serve on port 80/443, place Ledger behind Nginx Proxy Manager, Traefik, or Caddy. Point your proxy at `ledger-web:80`. The `/api/` prefix is already handled internally by the nginx container.
-
----
-
-## Architecture
-
-```
-ledger/
-├── src/
-│   ├── Ledger.Core/          Domain entities, repository interfaces
-│   ├── Ledger.Application/   CQRS handlers (MediatR), DTOs, validators
-│   ├── Ledger.Infrastructure/ EF Core, repositories, CSV parsers, Heimdall agent
-│   └── Ledger.Api/           ASP.NET Core controllers, middleware
-├── client/                   React + Vite + TypeScript + Tailwind
-├── Dockerfile                Multi-stage build (dotnet → node → api + web targets)
-├── docker-compose.yml        Production deployment
-└── nginx.conf                SPA + API proxy config
-```
-
-**Tech stack:** ASP.NET Core 8, SQLite (EF Core), MediatR, FluentValidation, React 18, Vite, TanStack Query v5, Zustand v5, Tailwind CSS, Recharts, Anthropic Claude API.
+Place Ledger behind Nginx Proxy Manager, Traefik, or Caddy and point it at `ledger-web:80`. The `/api/` proxy is handled internally — you only need to expose port 80 from the `ledger-web` container.
 
 ---
 
-## CSV Import
+## Resetting demo data
 
-Ledger auto-detects bank format from CSV headers:
+To wipe the database and start fresh:
 
-| Bank | Detection |
+```bash
+bash scripts/seed.sh
+```
+
+Then restart the API — it re-migrates and re-seeds automatically.
+
+---
+
+## CSV format reference
+
+If your bank's export doesn't auto-detect, Ledger's generic parser looks for columns containing these words (case-insensitive):
+
+| Field | Accepted column names |
 |---|---|
-| Chase | Headers contain `Transaction Date`, `Post Date`, `Type` |
-| Generic | Fallback — maps any headers with date/amount/description |
+| Date | `date`, `transaction date`, `posted date` |
+| Description | `description`, `merchant`, `payee`, `memo` |
+| Amount | `amount`, `debit`, `credit` |
 
-Drag and drop a CSV onto **The Bifrost** (⚡ button in the header). Duplicates are detected automatically on re-import.
+Negative amounts are treated as debits (spending); positive as credits (income/deposits).
 
 ---
 
