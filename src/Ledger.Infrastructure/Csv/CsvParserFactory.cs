@@ -30,7 +30,7 @@ public static class CsvParserFactory
         return new GenericCsvParser();
     }
 
-    private static IReadOnlyList<string> PeekHeaders(Stream stream)
+    private static System.Collections.ObjectModel.ReadOnlyCollection<string> PeekHeaders(Stream stream)
     {
         long startPos = stream.Position;
         try
