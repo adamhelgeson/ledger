@@ -1,0 +1,159 @@
+/* ── Fonts (local, no CDN) ───────────────────────────────────────────────── */
+@import '@fontsource/cinzel/400.css';
+@import '@fontsource/cinzel/700.css';
+@import '@fontsource/cinzel/900.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base resets ─────────────────────────────────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    border-color: #2a2f45;
+  }
+
+  html {
+    color-scheme: dark;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  body {
+    @apply bg-bg-primary text-text-primary font-sans antialiased;
+    background-image: radial-gradient(ellipse 80% 60% at 50% -20%, #1a1d2e80 0%, transparent 60%);
+    min-height: 100dvh;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0f1117;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a2f45;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3a4060;
+  }
+}
+
+/* ── Component utilities ─────────────────────────────────────────────────── */
+@layer components {
+  /* Card base */
+  .card {
+    @apply bg-bg-card rounded-xl border border-border shadow-card;
+  }
+
+  /* Card hover with gold glow */
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+  .card-hover:hover {
+    @apply shadow-card-hover border-gold/30;
+    transform: translateY(-1px);
+  }
+
+  /* Gold divider */
+  .divider-gold {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-gold/40 to-transparent;
+  }
+
+  /* Norse angular corner decoration */
+  .rune-corner {
+    position: relative;
+  }
+  .rune-corner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    border-top: 1px solid #d4a84b66;
+    border-left: 1px solid #d4a84b66;
+    border-radius: 2px 0 0 0;
+  }
+  .rune-corner::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    border-bottom: 1px solid #d4a84b66;
+    border-right: 1px solid #d4a84b66;
+    border-radius: 0 0 2px 0;
+  }
+
+  /* Amount display — always monospace */
+  .amount {
+    @apply font-mono tabular-nums tracking-tight;
+  }
+  .amount-positive {
+    @apply text-worthy;
+  }
+  .amount-negative {
+    @apply text-banished;
+  }
+  .amount-neutral {
+    @apply text-text-primary;
+  }
+
+  /* Section header with Cinzel */
+  .section-title {
+    @apply font-display text-gold tracking-wider uppercase;
+  }
+
+  /* Table row hover */
+  .table-row-hover {
+    @apply transition-colors duration-150 hover:bg-bg-elevated cursor-default;
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply bg-gradient-to-r from-bg-card via-bg-elevated to-bg-card bg-[length:200%_100%] animate-shimmer rounded;
+  }
+
+  /* Filter pill */
+  .filter-pill {
+    @apply flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border
+           text-sm text-text-secondary bg-bg-elevated
+           hover:border-gold/50 hover:text-text-primary
+           transition-all duration-150 cursor-pointer;
+  }
+  .filter-pill.active {
+    @apply border-gold/60 text-gold bg-gold/10;
+  }
+}
+
+/* ── Recharts overrides ──────────────────────────────────────────────────── */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: #2a2f4560;
+}
+
+.recharts-tooltip-wrapper {
+  outline: none;
+}
+
+.recharts-text {
+  fill: #8892a4;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+/* ── Selection ───────────────────────────────────────────────────────────── */
+::selection {
+  background: #d4a84b33;
+  color: #f0c878;
+}

@@ -118,12 +118,37 @@ SQLite stores decimals as TEXT — this is intentional for precision.
 
 ## Adding a New CSV Parser
 
-The `GenericCsvParser` auto-detects columns by common name aliases. To support a specific bank:
+All parsers live in `src/Ledger.Infrastructure/Csv/` and implement `ICsvParser`:
+
+```csharp
+public interface ICsvParser
+{
+    string Name { get; }                           // e.g. "Chase", "Generic"
+    bool CanParse(IReadOnlyList<string> headers);  // lowercase-trimmed header list
+    (IReadOnlyList<ParsedTransactionDto> Rows, IReadOnlyList<string> Errors) Parse(Stream csvStream);
+}
+```
+
+`CsvParserFactory.Select(stream)` peeks the header row and returns the first matching parser.
+Parsers are tested in registration order inside `CsvParserFactory.Parsers[]` — add new parsers **before** `GenericCsvParser` (which always returns `true` from `CanParse`).
+
+### Steps to add a new bank parser
 
 1. Create `src/Ledger.Infrastructure/Csv/MyBankCsvParser.cs`
-2. Implement the same signature: `public static (IReadOnlyList<ParsedTransactionDto>, IReadOnlyList<string>) Parse(Stream)`
-3. Update `ParseCsvHandler` to detect which parser to use (e.g., by filename pattern or a query param)
-4. Add column name aliases to `GenericCsvParser` if the bank uses a known but unlisted header
+2. Implement `ICsvParser` — set `Name`, define `CanParse` using distinctive headers, implement `Parse`
+3. Register it in `CsvParserFactory.Parsers[]` before `GenericCsvParser`
+4. The parser is auto-detected at runtime — no controller or handler changes needed
+
+### Currently registered parsers
+
+| Parser | `Name` | Detection criteria |
+|---|---|---|
+| `ChaseCsvParser` | `"Chase"` | Has "transaction date" **and** "post date" **and** "type" |
+| `GenericCsvParser` | `"Generic"` | Fallback — always matches |
+
+### Deduplication
+
+`ConfirmImportHandler` filters incoming rows against existing transactions (same account, same date range) using a `(date\|amount\|description)` hash. Duplicate rows are skipped and counted in `ConfirmImportDto.SkippedCount`.
 
 The `ParsedTransactionDto` is the normalised output — all parsers produce this shape.
 
@@ -204,5 +229,28 @@ dotnet test
 - ✅ Seed data: 5 themed accounts, 80+ transactions, 8 holdings
 - ✅ API compiles with 0 errors, 0 warnings (TreatWarningsAsErrors=true)
 - ✅ InitialCreate migration generated
-- ⏳ Frontend (client/) — Session 2
+- ✅ Frontend (client/) — Session 2
 - ⏳ Heimdall Claude API integration — future session
+
+### Session 2 (2026-03-18)
+- ✅ React + Vite + TypeScript + Tailwind CSS design system
+- ✅ VaultOfAsgard (net worth hero), NineRealms (account cards + sparklines), RagnarökReport (Recharts spending chart)
+- ✅ SacredTimeline (transactions table with sorting, server pagination, filters, search)
+- ✅ TransactionFilters (debounced search, quick date ranges, realm/category pills)
+- ✅ AppHeader (sticky header with Heimdall + Bifrost + refresh actions)
+- ✅ HeimdallChat (slide-in AI chat panel)
+- ✅ TanStack Query v5, Zustand v5, fontsource fonts (Cinzel, JetBrains Mono)
+- ✅ Worthiness badges (⚡ Worthy / 🔨 Unworthy / 💀 Banished) for credit cards
+
+### Session 3 (2026-03-18)
+- ✅ `ICsvParser` interface — all parsers implement `CanParse` + `Parse` + `Name`
+- ✅ `ChaseCsvParser` — auto-detected from "Transaction Date / Post Date / Type" headers; maps Chase categories
+- ✅ `CsvParserFactory` — peeks header row, selects best parser; Generic is always fallback
+- ✅ Deduplication in `ConfirmImportHandler` — skips rows matching (date|amount|description) of existing transactions
+- ✅ `ImportPreviewDto.DetectedParser` — parser name surfaced to UI
+- ✅ `ConfirmImportDto.SkippedCount` — duplicate count returned to UI
+- ✅ Bifrost frontend: drag-and-drop upload zone with rainbow shimmer hover animation
+- ✅ Import preview table with per-row checkboxes, parse warnings, select-all
+- ✅ Full import flow modal (upload → preview → confirm → success/error states)
+- ✅ "X transactions arrived safely in [realm name]" success message
+- ✅ Bifrost button in AppHeader; `bifrostOpen` state in Zustand store

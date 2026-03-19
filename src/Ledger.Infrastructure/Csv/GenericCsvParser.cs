@@ -11,7 +11,7 @@ namespace Ledger.Infrastructure.Csv;
 /// Looks for common column name patterns used by major banks.
 /// Extend by adding new column name aliases to the dictionaries below.
 /// </summary>
-public class GenericCsvParser
+public class GenericCsvParser : ICsvParser
 {
     private static readonly string[] DateColumns = ["date", "transaction date", "posted date", "trans date", "post date"];
     private static readonly string[] DescriptionColumns = ["description", "merchant", "payee", "name", "memo", "details", "transaction description"];
@@ -19,7 +19,12 @@ public class GenericCsvParser
     private static readonly string[] DebitColumns = ["debit", "debit amount", "withdrawal", "withdrawals"];
     private static readonly string[] CreditColumns = ["credit", "credit amount", "deposit", "deposits"];
 
-    public static (IReadOnlyList<ParsedTransactionDto> Rows, IReadOnlyList<string> Errors) Parse(Stream csvStream)
+    public string Name => "Generic";
+
+    /// <summary>Always returns true — Generic is the fallback parser.</summary>
+    public bool CanParse(IReadOnlyList<string> headers) => true;
+
+    public (IReadOnlyList<ParsedTransactionDto> Rows, IReadOnlyList<string> Errors) Parse(Stream csvStream)
     {
         var rows = new List<ParsedTransactionDto>();
         var errors = new List<string>();

@@ -12,6 +12,7 @@ public record ParsedTransactionDto(
 
 public record ImportPreviewDto(
     string Filename,
+    string DetectedParser,
     int RowCount,
     IReadOnlyList<ParsedTransactionDto> Rows,
     IReadOnlyList<string> Errors
@@ -19,5 +20,6 @@ public record ImportPreviewDto(
 
 public record ConfirmImportDto(
     Guid ImportBatchId,
-    int ImportedCount
+    int ImportedCount,
+    int SkippedCount
 );

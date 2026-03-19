@@ -21,4 +21,11 @@ public interface ITransactionRepository
     Task DeleteAsync(Guid id, CancellationToken ct = default);
     Task<IReadOnlyList<string>> GetDistinctCategoriesAsync(CancellationToken ct = default);
     Task<decimal> GetTotalSpendingAsync(Guid? accountId, DateTimeOffset from, DateTimeOffset toDate, CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns a set of deduplication keys for existing transactions within the given date range.
+    /// Key format: "yyyy-MM-dd|amount|description" (lowercase, invariant).
+    /// Used by the import flow to skip rows that already exist.
+    /// </summary>
+    Task<IReadOnlySet<string>> GetDeduplicationKeysAsync(Guid accountId, DateTimeOffset from, DateTimeOffset toDate, CancellationToken ct = default);
 }

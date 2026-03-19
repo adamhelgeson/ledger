@@ -94,4 +94,21 @@ public class TransactionRepository(LedgerDbContext db) : ITransactionRepository
             query = query.Where(t => t.AccountId == accountId.Value);
         return await query.SumAsync(t => t.Amount, ct);
     }
+
+    public async Task<IReadOnlySet<string>> GetDeduplicationKeysAsync(
+        Guid accountId, DateTimeOffset from, DateTimeOffset toDate,
+        CancellationToken ct = default)
+    {
+        // Load minimal fields; grouping/key-building done client-side to avoid SQLite translation issues.
+        var existing = await db.Transactions
+            .Where(t => t.AccountId == accountId && t.Date >= from && t.Date <= toDate)
+            .Select(t => new { t.Date, t.Amount, t.Description })
+            .ToListAsync(ct);
+
+        HashSet<string> keys = existing
+            .Select(t => $"{t.Date:yyyy-MM-dd}|{t.Amount:F2}|{t.Description.Trim().ToLowerInvariant()}")
+            .ToHashSet(StringComparer.Ordinal);
+
+        return keys;
+    }
 }
