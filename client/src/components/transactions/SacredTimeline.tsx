@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTransactions } from '@/hooks/useTransactions'
 import { useDashboardStore } from '@/stores/dashboardStore'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { transactionsApi } from '@/services/api'
 import { TransactionFilters } from './TransactionFilters'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -96,7 +98,7 @@ export function SacredTimeline() {
                     field="category"
                     current={sort}
                     onClick={handleSort}
-                    className="w-[130px] hidden sm:table-cell"
+                    className="w-[140px] hidden sm:table-cell"
                   >
                     Category
                   </SortTh>
@@ -162,6 +164,48 @@ export function SacredTimeline() {
 
 function TransactionRow({ tx, index }: { tx: TransactionDto; index: number }) {
   const isCredit = tx.transactionType === 'Credit'
+  const [editing, setEditing] = useState(false)
+  const [editValue, setEditValue] = useState(tx.category)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const queryClient = useQueryClient()
+
+  const categoryMutation = useMutation({
+    mutationFn: (category: string) => transactionsApi.updateCategory(tx.id, category),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      setEditing(false)
+    },
+    onError: () => setEditing(false),
+  })
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus()
+      inputRef.current?.select()
+    }
+  }, [editing])
+
+  const handleCategoryClick = () => {
+    setEditValue(tx.category)
+    setEditing(true)
+  }
+
+  const handleCategoryBlur = () => {
+    const trimmed = editValue.trim()
+    if (trimmed && trimmed !== tx.category) {
+      categoryMutation.mutate(trimmed)
+    } else {
+      setEditing(false)
+    }
+  }
+
+  const handleCategoryKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      inputRef.current?.blur()
+    } else if (e.key === 'Escape') {
+      setEditing(false)
+    }
+  }
 
   return (
     <tr
@@ -185,16 +229,30 @@ function TransactionRow({ tx, index }: { tx: TransactionDto; index: number }) {
         </div>
       </td>
 
-      {/* Category */}
+      {/* Category — click to edit */}
       <td className="px-4 py-3 hidden sm:table-cell">
-        <span
-          className={cn(
-            'text-xs font-mono border rounded px-1.5 py-0.5 whitespace-nowrap',
-            getCategoryColor(tx.category),
-          )}
-        >
-          {tx.category}
-        </span>
+        {editing ? (
+          <input
+            ref={inputRef}
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={handleCategoryBlur}
+            onKeyDown={handleCategoryKeyDown}
+            className="text-xs font-mono border border-gold/40 rounded px-1.5 py-0.5 bg-bg-primary text-text-primary w-full max-w-[130px] focus:outline-none focus:ring-1 focus:ring-gold/50"
+          />
+        ) : (
+          <button
+            onClick={handleCategoryClick}
+            title="Click to edit category"
+            className={cn(
+              'text-xs font-mono border rounded px-1.5 py-0.5 whitespace-nowrap',
+              'hover:border-gold/40 hover:text-gold transition-colors cursor-pointer',
+              getCategoryColor(tx.category),
+            )}
+          >
+            {tx.category}
+          </button>
+        )}
       </td>
 
       {/* Realm */}

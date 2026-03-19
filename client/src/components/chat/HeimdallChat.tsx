@@ -42,13 +42,16 @@ export function HeimdallChat() {
     const text = input.trim()
     if (!text || loading) return
 
+    // Capture history before adding the new user message
+    const history = messages.map((m) => ({ role: m.role, content: m.content }))
+
     const userMsg: Message = { id: crypto.randomUUID(), role: 'user', content: text }
     setMessages((prev) => [...prev, userMsg])
     setInput('')
     setLoading(true)
 
     try {
-      const reply = await sendChatMessage(text)
+      const reply = await sendChatMessage(text, history)
       const assistantMsg: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',

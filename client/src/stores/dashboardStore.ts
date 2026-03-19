@@ -18,6 +18,10 @@ interface DashboardState {
   // Bifrost import modal
   bifrostOpen: boolean
   setBifrostOpen: (open: boolean) => void
+
+  // Page routing
+  currentView: 'dashboard' | 'settings'
+  setCurrentView: (view: 'dashboard' | 'settings') => void
 }
 
 const DEFAULT_FILTER: TransactionFilter = {
@@ -39,4 +43,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
 
   bifrostOpen: false,
   setBifrostOpen: (open) => set({ bifrostOpen: open }),
+
+  currentView: 'dashboard',
+  setCurrentView: (view) => set({ currentView: view }),
 }))

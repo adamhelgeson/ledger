@@ -3,6 +3,7 @@ using Ledger.Application.Import.DTOs;
 using Ledger.Core.Entities;
 using Ledger.Core.Enums;
 using Ledger.Core.Interfaces;
+using Ledger.Infrastructure.Services;
 using MediatR;
 
 namespace Ledger.Infrastructure.Handlers;
@@ -55,7 +56,9 @@ public sealed class ConfirmImportHandler(
                 Date = row.Date,
                 Description = row.Description,
                 Amount = row.Amount,
-                Category = row.Category,
+                Category = string.IsNullOrWhiteSpace(row.Category)
+                    ? TransactionCategorizer.Categorize(row.Description)
+                    : row.Category,
                 TransactionType = row.TransactionType,
                 ImportBatchId = batch.Id,
                 CreatedAt = now,

@@ -254,3 +254,42 @@ dotnet test
 - ✅ Full import flow modal (upload → preview → confirm → success/error states)
 - ✅ "X transactions arrived safely in [realm name]" success message
 - ✅ Bifrost button in AppHeader; `bifrostOpen` state in Zustand store
+
+### Session 4 (2026-03-18)
+- ✅ `Anthropic` NuGet package (v12.9.0) added to `Ledger.Infrastructure`
+- ✅ `HeimdallChatHandler` in Infrastructure — full agentic loop replacing Application placeholder
+- ✅ Six Claude tools: `query_transactions`, `get_account_summary`, `get_spending_by_category`, `get_net_worth_history`, `get_holdings`, `calculate_savings_rate`
+- ✅ Manual tool-use loop (call → execute tool → append result → repeat) with 10-iteration safety cap
+- ✅ `AnthropicClient` registered as singleton; reads from `Heimdall:ApiKey` config or `ANTHROPIC_API_KEY` env var
+- ✅ Conversation history forwarded from frontend to backend on every turn
+- ✅ `sendChatMessage(text, history)` updated in api.ts; `HeimdallChat.tsx` passes prior messages as history
+- ✅ Model: `claude-opus-4-6`; max tokens per turn: 4096
+
+### Heimdall API key setup
+```bash
+# User secrets (dev) — run from src/Ledger.Api/
+dotnet user-secrets set "Heimdall:ApiKey" "sk-ant-api03-..."
+
+# Or set environment variable
+export ANTHROPIC_API_KEY="sk-ant-api03-..."
+```
+
+### Session 5 (2026-03-18)
+- ✅ `UpdateTransactionCategoryCommand` — CQRS command + handler for inline category override
+- ✅ `PATCH /api/transactions/{id}/category` endpoint on `TransactionsController`
+- ✅ `TransactionCategorizer` — pattern-based auto-categorization (21 categories, 100+ keyword patterns, regex compiled)
+- ✅ `ConfirmImportHandler` injects categorizer: uses parser-assigned category if set, falls back to pattern match
+- ✅ `GET /health` health check endpoint (`MapHealthChecks`)
+- ✅ `currentView: 'dashboard' | 'settings'` added to Zustand store; `App.tsx` routes between views
+- ✅ Settings nav pill in `AppHeader`; mobile Settings icon button
+- ✅ `SettingsPage` with RealmManager + About section ("Forged in Nidavellir...")
+- ✅ `RealmManager` — account list with add/edit/archive/delete, archived accounts section
+- ✅ `AccountFormModal` — create/edit account form (name, institution, type, currency)
+- ✅ Inline category editing in `SacredTimeline` — click badge → input → Enter/blur to save
+- ✅ `transactionsApi.updateCategory` added to `api.ts`
+- ✅ `Input` component updated to use `forwardRef` (fixes ref prop TypeScript error)
+- ✅ `@types/node` + `vite-env.d.ts` added to fix frontend TypeScript config errors
+- ✅ `Dockerfile` — multi-stage build (dotnet-build, node-build, api runtime, web/nginx targets)
+- ✅ `docker-compose.yml` — api + web services, `ledger-data` volume, health checks, `ANTHROPIC_API_KEY` passthrough
+- ✅ `nginx.conf` — SPA fallback, `/api/` and `/health` proxy to api container, asset caching
+- ✅ `README.md` — full deployment guide for home media server, Docker instructions, backup recipe

@@ -1,39 +1,43 @@
-version: "3.9"
-
-# ── Ledger — The All-Father's Treasury ────────────────────────────────────────
-# Local-first deployment for media server or home lab.
-# Usage: docker-compose up -d
-# ──────────────────────────────────────────────────────────────────────────────
-
 services:
-  ledger-api:
+  api:
     build:
       context: .
-      dockerfile: src/Ledger.Api/Dockerfile
+      target: api
     container_name: ledger-api
-    ports:
-      - "5050:8080"
+    restart: unless-stopped
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - DataDir=/app/data
-      - AllowedOrigins__0=http://localhost:3000
+      ASPNETCORE_ENVIRONMENT: Production
+      DataDir: /app/data
+      Heimdall__ApiKey: ${ANTHROPIC_API_KEY:-}
     volumes:
       - ledger-data:/app/data
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5050/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - ledger-net
 
-  ledger-client:
+  web:
     build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: ledger-client
+      context: .
+      target: web
+    container_name: ledger-web
+    restart: unless-stopped
     ports:
       - "3000:80"
     depends_on:
-      - ledger-api
-    environment:
-      - VITE_API_BASE_URL=http://ledger-api:5050
-    restart: unless-stopped
+      api:
+        condition: service_healthy
+    networks:
+      - ledger-net
 
 volumes:
   ledger-data:
-    driver: local
+    name: ledger-data
+
+networks:
+  ledger-net:
+    name: ledger-net

@@ -33,6 +33,9 @@ builder.Services.AddSwaggerGen(c =>
 // Infrastructure (EF Core, repositories, CSV parser, seeder)
 builder.Services.AddInfrastructure(connectionString);
 
+// Health checks
+builder.Services.AddHealthChecks();
+
 // MediatR — scan Application + Infrastructure assemblies for handlers
 builder.Services.AddMediatR(cfg =>
 {
@@ -91,6 +94,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();
 

@@ -1,4 +1,4 @@
-import { MessageSquare, RefreshCw, Zap } from 'lucide-react'
+import { MessageSquare, RefreshCw, Settings, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useDashboardStore } from '@/stores/dashboardStore'
 import { useQueryClient } from '@tanstack/react-query'
@@ -9,6 +9,8 @@ export function AppHeader() {
   const setChatOpen = useDashboardStore((s) => s.setChatOpen)
   const chatOpen = useDashboardStore((s) => s.chatOpen)
   const setBifrostOpen = useDashboardStore((s) => s.setBifrostOpen)
+  const currentView = useDashboardStore((s) => s.currentView)
+  const setCurrentView = useDashboardStore((s) => s.setCurrentView)
   const queryClient = useQueryClient()
   const [refreshing, setRefreshing] = useState(false)
 
@@ -37,13 +39,33 @@ export function AppHeader() {
         {/* Gold divider accent */}
         <div className="hidden sm:block h-5 w-px bg-gold/20 mx-2" />
 
-        {/* Nav links — placeholder for future pages */}
+        {/* Nav links */}
         <nav className="hidden sm:flex items-center gap-1 flex-1 ml-2">
-          <button className="filter-pill active text-xs">Dashboard</button>
+          <button
+            className={cn('filter-pill text-xs', currentView === 'dashboard' && 'active')}
+            onClick={() => setCurrentView('dashboard')}
+          >
+            Dashboard
+          </button>
+          <button
+            className={cn('filter-pill text-xs', currentView === 'settings' && 'active')}
+            onClick={() => setCurrentView('settings')}
+          >
+            Settings
+          </button>
         </nav>
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCurrentView(currentView === 'settings' ? 'dashboard' : 'settings')}
+            title="Settings"
+            className={cn('sm:hidden', currentView === 'settings' && 'text-gold')}
+          >
+            <Settings size={14} />
+          </Button>
           <Button
             variant="secondary"
             size="sm"

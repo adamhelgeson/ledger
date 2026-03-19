@@ -35,4 +35,18 @@ public class TransactionsController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(command, ct);
         return StatusCode(StatusCodes.Status201Created, ApiResponse<TransactionDto>.Ok(result));
     }
+
+    [HttpPatch("{id:guid}/category")]
+    [ProducesResponseType(typeof(ApiResponse<TransactionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<TransactionDto>), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateCategory(
+        Guid id,
+        [FromBody] UpdateCategoryRequest body,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(new UpdateTransactionCategoryCommand(id, body.Category), ct);
+        return Ok(ApiResponse<TransactionDto>.Ok(result));
+    }
 }
+
+public record UpdateCategoryRequest(string Category);

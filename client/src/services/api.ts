@@ -62,6 +62,11 @@ export const transactionsApi = {
     const qs = params.toString()
     return request<PaginatedResult<TransactionDto>>(`/transactions${qs ? `?${qs}` : ''}`)
   },
+  updateCategory: (id: string, category: string) =>
+    request<TransactionDto>(`/transactions/${id}/category`, {
+      method: 'PATCH',
+      body: JSON.stringify({ category }),
+    }),
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -101,8 +106,11 @@ export const chatApi = {
     request<ChatResponseDto>('/chat', { method: 'POST', body: JSON.stringify(body) }),
 }
 
-export async function sendChatMessage(message: string): Promise<string> {
-  const response = await chatApi.send({ message })
+export async function sendChatMessage(
+  message: string,
+  history: { role: string; content: string }[] = [],
+): Promise<string> {
+  const response = await chatApi.send({ message, history })
   return response.message
 }
 

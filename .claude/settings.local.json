@@ -4,7 +4,13 @@
       "Bash(dotnet new:*)",
       "Read(//c/Program Files/dotnet//**)",
       "Read(//c/Program Files/dotnet/x64//**)",
-      "Bash(reg query:*)"
+      "Bash(reg query:*)",
+      "Skill(claude-api)",
+      "Skill(claude-api:*)",
+      "Bash(dotnet build:*)",
+      "Bash(pnpm run:*)",
+      "Bash(pnpm add:*)",
+      "Bash(\"c:\\\\Users\\\\helgi\\\\GitHub\\\\ledger\\\\client\\\\src\\\\vite-env.d.ts\")"
     ]
   }
 }
